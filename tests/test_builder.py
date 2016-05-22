@@ -28,12 +28,15 @@ def test_call(Y):
         Y('namespace', 'urn:yang:test'),
         Y('prefix', 'test'),
     ])
+
     assert module.dump().strip() == (
         'module test {\n'
         '  namespace "urn:yang:test";\n'
         '  prefix test;\n'
         '}'
     )
+
+    assert module.validate()
 
 
 def test_getattr(Y):
@@ -111,6 +114,33 @@ def test_from_tuple(Y):
         Y.from_tuple('foobar')
 
 
+def test_mix_from_tuple_and_regular(Y):
+    """
+    should build entire (nested) (sub)trees
+    should return argument if it is an StatementWrapper
+    should always return StatementWrapper
+    should raise TypeError ir argument is not tuple,
+        StatementWrapper or Statement
+    """
+    module = Y.module('test', [
+        ('namespace', 'urn:yang:test'),
+        ('prefix', 'test'),
+        Y.leaf('data', [('type', 'anyxml')]),
+    ])
+
+    assert isinstance(module, StatementWrapper)
+
+    assert module.dump().strip() == (
+        'module test {\n'
+        '  namespace "urn:yang:test";\n'
+        '  prefix test;\n'
+        '  leaf data {\n'
+        '    type anyxml;\n'
+        '  }\n'
+        '}'
+    )
+
+
 def test_statement_without_arg(Y):
     """
     Y should allow bypassing ``arg``  as positional argument,
@@ -148,3 +178,5 @@ def test_statement_without_arg(Y):
         '  }\n'
         '}'
     )
+
+    assert module.validate()

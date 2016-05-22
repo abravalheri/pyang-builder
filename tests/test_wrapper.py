@@ -45,13 +45,6 @@ def test_dump(Y):
         '}'
     )
 
-    assert module.dump().strip().strip() == (
-        'module test {\n'
-        '  namespace "urn:yang:test";\n'
-        '  prefix test;\n'
-        '}'
-    )
-
 
 def test_attribute(Y):
     """
@@ -61,12 +54,14 @@ def test_attribute(Y):
     module.prefix('test')
     module.namespace('urn:yang:test')
 
-    assert module.dump().strip().strip() == (
+    assert module.dump().strip() == (
         'module test {\n'
         '  namespace "urn:yang:test";\n'
         '  prefix test;\n'
         '}'
     )
+
+    assert module.validate()
 
 
 def test_call(Y):
@@ -77,12 +72,14 @@ def test_call(Y):
     module('prefix', 'test')
     module('namespace', 'urn:yang:test')
 
-    assert module.dump().strip().strip() == (
+    assert module.dump().strip() == (
         'module test {\n'
         '  namespace "urn:yang:test";\n'
         '  prefix test;\n'
         '}'
     )
+
+    assert module.validate()
 
 
 def test_mix_builder(Y):
@@ -95,18 +92,20 @@ def test_mix_builder(Y):
     )
     module('prefix', 'test')
     module.append(Y.from_tuple(
-        ('leaf', 'data', [('type', 'anyxml')])
+        ('leaf', 'data', [('type', 'string')])
     ))
 
-    assert module.dump().strip().strip() == (
+    assert module.dump().strip() == (
         'module test {\n'
         '  namespace "urn:yang:test";\n'
         '  prefix test;\n'
         '  leaf data {\n'
-        '    type anyxml;\n'
+        '    type string;\n'
         '  }\n'
         '}'
     )
+
+    assert module.validate()
 
 
 def test_unwrap(Y):
@@ -177,6 +176,36 @@ def test_validate(Y):
     assert not [
         child for child in raw_module.i_children
         if child.keyword == 'extension']
+
+
+def test_validate_with_warnings(Y):
+    """
+    should be valid even if AST is not proper,
+    but should warn
+    """
+    module = Y.module('test', [
+        Y.namespace('urn:yang:test'),
+        Y.prefix('test'),
+        Y('import', 'ietf-yang-types', Y.prefix('ietf')),  # warning: unused
+        Y.revision('2008-01-02', Y.description('first update')),
+        Y.revision('2009-01-02', Y.description('second update')),
+        # warning: not reverse order
+        Y.typedef('myint', Y.type('int32')),  # warning: unused
+        Y.grouping('unused', [  # warning: unused
+            Y.list('user', [
+                Y.key('id'), Y.leaf('name', Y.type('string')),
+                Y.leaf('id', [Y.type('int32'), Y.default(0)]),
+            ])  # warning: key+default
+        ]),
+        Y.leaf('group', [
+            Y.type('string'),
+            Y.mandatory(False),  # warning
+            Y.config(True),  # warning
+        ]),
+    ])
+
+    with pytest.warns(SyntaxWarning):
+        assert module.validate()
 
 
 def test_find(container):

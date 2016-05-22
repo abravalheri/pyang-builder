@@ -54,19 +54,32 @@ class Builder(object):
 
     When the builder itself is called, the first argument is used as
     keyword for the statement and the second is used as its argument.
-    Optional children and parent nodes can be passed::
+    Optional child (or a children list) and parent nodes can be passed::
 
         >>> Y('ext:c-define', 'INTERFACES',
-                     Y.if_feature('local-storage')).dump()
+                     Y.if_feature('local-storage'), parent=module).dump()
         # => 'ext:c-define "INTERFACES" {
         #       if-feature local-storage;
         #     }'
 
-    Note that Builder is stateful, it means it cannot be shared among
-    threads or even used to build multiple trees simultaneously.
+    A child can be a node or a tuple (in case of children list,
+    both can be mixed togheter). If a tuple is passed, the method
+    :meth:`from_tuple() <pyang_builder.builder.Bulder.from_tuple>`
+    is used to transform it into a node::
 
-    The prefered way of building ASTs is by passing children as argument,
-    but is also possible to delay the children creation::
+        >>> Y.leaf_list('allow-user', [
+                ('type', 'string'),
+                Y.description('username'),
+            ]).dump()
+        # => 'leaf-list allow-user {
+        #       type string;
+        #       description "username";
+        #     }'
+
+    The nodes produced by Builder are wrapped as
+    :class:`StatementWrapper <pyang_builder.wrappers.StatementWrapper>`
+    objects. This objects can be called similarly to builder, but the
+    produced nodes are automatically appended as children::
 
         >>> tl = Y.leaf_list('text-lines')
         >>> tl.type('string')
@@ -76,6 +89,14 @@ class Builder(object):
         #       type string;
         #       description "lines of a text";
         #     }'
+
+    .. note:: Since methods cannot be named ``import`` in python,
+        use the ``call`` style::
+
+            Y('import', 'my-module-name', Y.prefix('my'))
+
+    .. note:: Builder is stateful, it means it cannot be shared among
+        threads or even used to build multiple trees simultaneously.
 
     """
     def __init__(self, name='builder-generated', top=None, keyword='module'):
@@ -123,8 +144,11 @@ class Builder(object):
             children = arg
             arg = None
 
-        if not isinstance(children, (list, tuple)):
+        if not isinstance(children, list):
             children = [children]
+
+        if arg in (False, True):
+            arg = str(arg).lower()
 
         if keyword in ('module', 'submodule'):
             node = self._top
@@ -133,7 +157,7 @@ class Builder(object):
             node.i_module = node
         else:
             parent_node = (
-                parent._statement
+                parent.unwrap()
                 if isinstance(parent, StatementWrapper)
                 else parent
             )
@@ -145,7 +169,9 @@ class Builder(object):
         unwraped_children = []
         for child in children:
             if isinstance(child, StatementWrapper):
-                unwraped = child._statement
+                unwraped = child.unwrap()
+            elif isinstance(child, tuple):
+                unwraped = self.from_tuple(child).unwrap()
             else:
                 unwraped = child
             unwraped.parent = node
@@ -213,7 +239,7 @@ class Builder(object):
                 ('leaf', 'message', [('type', 'string')]),
             ])
 
-        For comments use ``_comment``.
+        For comments use ``_comment`` as keyword.
         Note that children should be a list
 
         Arguments:

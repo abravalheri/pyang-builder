@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Components responsible for providing a ``FlentInterface``-like DSL."""
 from pyang import statements as st
-from pyangext.utils import create_context, dump, select
+from pyangext.utils import check, create_context, dump, select
 
 __author__ = "Anderson Bravalheri"
 __copyright__ = "Copyright (C) 2016 Anderson Bravalheri"
@@ -12,7 +12,7 @@ class StatementWrapper(object):
     """Provides a elegant way of constructing YANG models.
 
     This class wraps functionality of
-    :mod:`Builder <pyang_builder.builder.Builder>` and ``pyangext.utils``
+    :class:`Builder <pyang_builder.builder.Builder>` and ``pyangext.utils``
     in an object oriented chainable way.
     """
 
@@ -39,7 +39,7 @@ class StatementWrapper(object):
     def __call__(self, *args, **kwargs):
         """Call ``__call__`` from builder, adding result as substatement.
 
-        See :meth:`Builder.__call__`.
+        See :class:`Builder <pyang_builder.builder.Builder>`.
         """
         kwargs.setdefault('parent', self._statement)
         other_wrapper = self._builder.__call__(*args, **kwargs)
@@ -50,7 +50,7 @@ class StatementWrapper(object):
     def __getattr__(self, name):
         """Call ``__getattr__`` from builder, adding result as substatement.
 
-        See :meth:`Builder.__getattr__`.
+        See :class:`Builder <pyang_builder.builder.Builder>`.
         """
         method = getattr(self._builder, name)
         parent = self._statement
@@ -128,7 +128,19 @@ class StatementWrapper(object):
                 'Cannot validate `%s`, only top-level statements '
                 '(module, submodule)', node.keyword)
 
-        st.validate_module(ctx or create_context(), node)
+        ctx_ = ctx or create_context()
+
+        # do not mix validation errors with other errors
+        old_errors = ctx_.errors
+        ctx_.errors = []
+
+        st.validate_module(ctx_, node)
+
+        # look for errors and warnings
+        check(ctx_)
+
+        # restore old errors
+        ctx_.errors = old_errors
 
         return node.i_is_validated
 
