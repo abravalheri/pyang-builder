@@ -1,8 +1,8 @@
 ========
-pyangext
+pyang-builder
 ========
 
-This is the documentation of **pyangext**.
+This is the documentation of **pyang-builder**.
 
 .. note::
 

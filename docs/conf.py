@@ -7,7 +7,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
+# isort:skip_file
 import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -31,7 +31,7 @@ if on_rtd:
         inspect.getfile(inspect.currentframe())))
 
     output_dir = os.path.join(__location__, "../docs/api")
-    module_dir = os.path.join(__location__, "../pyangext")
+    module_dir = os.path.join(__location__, "../pyang_builder")
     cmd_line_template = "sphinx-apidoc -f -o {outputdir} {moduledir}"
     cmd_line = cmd_line_template.format(outputdir=output_dir, moduledir=module_dir)
     apidoc.main(cmd_line.split(" "))
@@ -61,8 +61,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pyangext'
-copyright = u'2016, (none)'
+project = u'pyang-builder'
+copyright = u'2016, Anderson Bravalheri'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -128,7 +128,7 @@ html_theme = 'alabaster'
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
 try:
-    from pyangext import __version__ as version
+    from pyang_builder import __version__ as version
 except ImportError:
     pass
 else:
@@ -193,7 +193,7 @@ html_static_path = ['_static']
 # html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pyangext-doc'
+htmlhelp_basename = 'pyang-builder-doc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -212,7 +212,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'user_guide.tex', u'pyangext Documentation',
+  ('index', 'user_guide.tex', u'pyang-builder Documentation',
    u'(none)', 'manual'),
 ]
 

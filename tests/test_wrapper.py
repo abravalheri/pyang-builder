@@ -8,18 +8,13 @@ import pytest
 
 from pyang.statements import Statement
 
-from pyangext.syntax_tree import StatementWrapper, ValidationError, YangBuilder
 from pyangext.utils import create_context
+
+from pyang_builder import StatementWrapper
 
 __author__ = "Anderson Bravalheri"
 __copyright__ = "Copyright (C) 2016 Anderson Bravalheri"
 __license__ = "mozilla"
-
-
-@pytest.fixture
-def Y():
-    """YANG Builder"""
-    return YangBuilder()
 
 
 @pytest.fixture
@@ -30,6 +25,87 @@ def container(Y):
             ('leaf', 'id', [('type', 'int32')]),
             ('leaf', 'name', [('type', 'string')]),
         ])
+    )
+
+
+def test_dump(Y):
+    """
+    dump should correctly print wrapper
+    wrapper should dump itself
+    """
+    module = Y.module('test', [
+        Y.prefix('test'),
+        Y.namespace('urn:yang:test')
+    ])
+
+    assert module.dump().strip() == (
+        'module test {\n'
+        '  namespace "urn:yang:test";\n'
+        '  prefix test;\n'
+        '}'
+    )
+
+    assert module.dump().strip().strip() == (
+        'module test {\n'
+        '  namespace "urn:yang:test";\n'
+        '  prefix test;\n'
+        '}'
+    )
+
+
+def test_attribute(Y):
+    """
+    wrapper should allow direct attribute
+    """
+    module = Y.module('test')
+    module.prefix('test')
+    module.namespace('urn:yang:test')
+
+    assert module.dump().strip().strip() == (
+        'module test {\n'
+        '  namespace "urn:yang:test";\n'
+        '  prefix test;\n'
+        '}'
+    )
+
+
+def test_call(Y):
+    """
+    wrapper should allow direct call
+    """
+    module = Y('module', 'test')
+    module('prefix', 'test')
+    module('namespace', 'urn:yang:test')
+
+    assert module.dump().strip().strip() == (
+        'module test {\n'
+        '  namespace "urn:yang:test";\n'
+        '  prefix test;\n'
+        '}'
+    )
+
+
+def test_mix_builder(Y):
+    """
+    builder should mix with pyang standard
+    """
+    module = Y(
+        'module', 'test',
+        Statement(None, None, None, 'namespace', 'urn:yang:test')
+    )
+    module('prefix', 'test')
+    module.append(Y.from_tuple(
+        ('leaf', 'data', [('type', 'anyxml')])
+    ))
+
+    assert module.dump().strip().strip() == (
+        'module test {\n'
+        '  namespace "urn:yang:test";\n'
+        '  prefix test;\n'
+        '  leaf data {\n'
+        '    type anyxml;\n'
+        '  }\n'
+        '}'
     )
 
 
@@ -50,7 +126,7 @@ def test_validate(Y):
     """
     leaf = Y.leaf('name', Y.type('string'))
 
-    with pytest.raises(ValidationError):
+    with pytest.raises(ValueError):
         leaf.validate()
 
     ctx = create_context()

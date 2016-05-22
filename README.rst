@@ -1,13 +1,13 @@
-.. image:: https://travis-ci.org/abravalheri/pyangext.svg?branch=master
-    :target: https://travis-ci.org/abravalheri/pyangext
-.. image:: https://coveralls.io/repos/github/abravalheri/pyangext/badge.svg?branch=master
-    :target: https://coveralls.io/github/abravalheri/pyangext?branch=master
+.. image:: https://travis-ci.org/abravalheri/pyang-builder.svg?branch=master
+    :target: https://travis-ci.org/abravalheri/pyang-builder
+.. image:: https://coveralls.io/repos/github/abravalheri/pyang-builder/badge.svg?branch=master
+    :target: https://coveralls.io/github/abravalheri/pyang-builder?branch=master
 
-========
-pyangext
-========
+=============
+pyang-builder
+=============
 
-Sensible extensions for ``pyang``
+Tools for programmatical generation of YANG models
 
 
 Description
