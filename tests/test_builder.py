@@ -58,7 +58,7 @@ def test_getattr(Y):
 
 def test_comment(Y):
     """
-    single line comments should start with double slashs
+    single line comments should start with double-slashes
     """
     comment = Y.comment('comment test')
     assert comment.dump().strip() == '// comment test'
@@ -85,7 +85,7 @@ def test_from_tuple(Y):
     should build entire (nested) (sub)trees
     should return argument if it is an StatementWrapper
     should always return StatementWrapper
-    should raise TypeError ir argument is not tuple,
+    should raise TypeError if argument is not tuple,
         StatementWrapper or Statement
     """
     module = Y.from_tuple(
@@ -119,7 +119,7 @@ def test_mix_from_tuple_and_regular(Y):
     should build entire (nested) (sub)trees
     should return argument if it is an StatementWrapper
     should always return StatementWrapper
-    should raise TypeError ir argument is not tuple,
+    should raise TypeError if argument is not tuple,
         StatementWrapper or Statement
     """
     module = Y.module('test', [

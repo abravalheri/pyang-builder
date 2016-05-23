@@ -31,14 +31,14 @@ class Builder(object):
     Usage
     -----
 
-    The Builder class needs to be instantiated for usage. It is recomended
+    The Builder class needs to be instantiated for usage. It is recommended
     to pass a string as first argument for debugging purposes, for example::
 
         Y = Builder('my-awesome-module')
 
     If an undefined method is called from builder, the name of the
     method is used as keyword for the node. Underscore are replaced
-    by dashes and duble underscores denote separation of a prefix::
+    by dashes and double underscores denote separation of a prefix::
 
         >>> Y.leaf_list('allow-user', [
                 Y.type('string'), Y.description('username')
@@ -64,7 +64,7 @@ class Builder(object):
         #     }'
 
     A child can be a node or a tuple (in case of children list,
-    both can be mixed togheter). If a tuple is passed, the method
+    both can be mixed together). If a tuple is passed, the method
     :meth:`from_tuple() <pyang_builder.builder.Bulder.from_tuple>`
     is used to transform it into a node::
 
@@ -82,10 +82,10 @@ class Builder(object):
     objects. This objects can be called similarly to builder, but the
     produced nodes are automatically appended as children::
 
-        >>> tl = Y.leaf_list('text-lines')
-        >>> tl.type('string')
-        >>> tl.description('lines of a text')
-        >>> tl.dump()
+        >>> text_lines = Y.leaf_list('text-lines')
+        >>> text_lines.type('string')
+        >>> text_lines.description('lines of a text')
+        >>> text_lines.dump()
         # => 'leaf-list text-lines {
         #       type string;
         #       description "lines of a text";
@@ -105,7 +105,7 @@ class Builder(object):
 
         Arguments:
             name (str): optional name for a hypothetical output module.
-                Note that this argument may be used for debbuging purposes,
+                Note that this argument may be used for debugging purposes,
                 usually the syntax errors will threat this string as a
                 filename. If no name is provided, the string
                 ``builder-generated`` is used.
@@ -119,7 +119,7 @@ class Builder(object):
 
         # Creates a dummy outermost module statement to simplify
         # traversing tree logic
-        self._top = top or st.Statement(None, None, self._pos, 'module', name)
+        self._top = top or st.Statement(None, None, self._pos, keyword, name)
 
         if not self._pos.top:
             self._pos.top = self._top
@@ -132,7 +132,8 @@ class Builder(object):
             arg (str): argument of the statement
 
         Keyword Arguments:
-            children: optional statement or list to be inserted as substatement
+            children: optional statement or list to be inserted
+                as sub-statement
             parent (pyang.statements.Statement): optional parent statement
 
         Returns:
@@ -224,7 +225,7 @@ class Builder(object):
 
         return self.__call__('_comment', text, parent=parent)
 
-    def from_tuple(self, texp, parent=None):
+    def from_tuple(self, tuple_expression, parent=None):
         """Generates a YANG statement form a tuple-expression
 
         Here the tuple-expression is considered a tuple (nested or not)
@@ -250,7 +251,8 @@ class Builder(object):
         Note that children should be a list
 
         Arguments:
-            texp (tuple): tuple-expression representation of statement
+            tuple_expression (tuple): tuple-expression representation
+                of a statement
             parent (pyang.statements.Statement): optional parent statement
 
         Example:
@@ -260,22 +262,22 @@ class Builder(object):
 
         See :meth:`Builder.__call__`.
         """
-        if is_statement(texp):
-            return StatementWrapper(texp, self)
+        if is_statement(tuple_expression):
+            return StatementWrapper(tuple_expression, self)
 
-        if is_wrapper(texp):
-            return texp
+        if is_wrapper(tuple_expression):
+            return tuple_expression
 
-        if not isinstance(texp, tuple):
+        if not isinstance(tuple_expression, tuple):
             raise TypeError(
-                'argument should be tuple, %s given', type(texp))
+                'argument should be tuple, %s given', type(tuple_expression))
 
-        last = texp[-1]
+        last = tuple_expression[-1]
         if isinstance(last, list):
-            node = self(*texp[:-1], parent=parent)
+            node = self(*tuple_expression[:-1], parent=parent)
             for child in last:
                 node.append(self.from_tuple(child, parent=node))
 
             return node
 
-        return self(*texp, parent=parent)
+        return self(*tuple_expression, parent=parent)

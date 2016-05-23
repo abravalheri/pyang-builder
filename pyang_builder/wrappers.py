@@ -30,7 +30,7 @@ class StatementWrapper(object):
     def __init__(self, statement, builder):
         """Create a builder wrapper around ``pyang.statements.Statement``.
 
-        This wrapper can be used to generate substatements, or dump the
+        This wrapper can be used to generate sub-statements, or dump the
         syntax tree as a YANG string representation.
 
         Example:
@@ -48,18 +48,18 @@ class StatementWrapper(object):
         self._builder = builder
 
     def __call__(self, *args, **kwargs):
-        """Call ``__call__`` from builder, adding result as substatement.
+        """Call ``__call__`` from builder, adding result as sub-statement.
 
         See :class:`Builder <..builder.Builder>`.
         """
         kwargs.setdefault('parent', self._statement)
         other_wrapper = self._builder.__call__(*args, **kwargs)
-        self._statement.substmts.append(other_wrapper._statement)
+        self._statement.substmts.append(other_wrapper.unwrap())
 
         return other_wrapper
 
     def __getattr__(self, name):
-        """Call ``__getattr__`` from builder, adding result as substatement.
+        """Call ``__getattr__`` from builder, adding result as sub-statement.
 
         See :class:`Builder <..builder.Builder>`.
         """
@@ -69,7 +69,7 @@ class StatementWrapper(object):
         def _call(*args, **kwargs):
             kwargs.setdefault('parent', self._statement)
             other_wrapper = method(*args, **kwargs)
-            parent.substmts.append(other_wrapper._statement)
+            parent.substmts.append(other_wrapper.unwrap())
 
             return other_wrapper
 
@@ -87,6 +87,7 @@ class StatementWrapper(object):
 
     @property
     def children(self):
+        """List of children nodes"""
         return ListWrapper([
             self.__class__(child, self._builder)
             for child in self._statement.substmts
@@ -123,7 +124,7 @@ class StatementWrapper(object):
         Arguments:
             select: optional callable that receives a node and returns a bool
                 (True if the node matches the criteria)
-            apply: optinal callable that are going to be applied to the node
+            apply: optional callable that are going to be applied to the node
                 if it matches the criteria
             key (str): property where the children nodes are stored,
                 default is ``substmts``
@@ -148,7 +149,7 @@ class StatementWrapper(object):
         Add children statements
 
         Arguments:
-            *children (pyang.statements.Statements): substatements to be added
+            *children (pyang.statements.Statements): sub-statements to be added
 
         Keyword Arguments:
             copy (bool): If true, the node will be copied and not modified
@@ -158,7 +159,7 @@ class StatementWrapper(object):
             StatementWrapper: wrapper itself
         """
         statement = self._statement
-        substatements = statement.substmts
+        sub_statements = statement.substmts
         copy = kwargs.get('copy')
 
         for child in children:
@@ -167,7 +168,7 @@ class StatementWrapper(object):
                 sub = sub.copy(statement)
             else:
                 sub.parent = statement
-            substatements.append(sub)
+            sub_statements.append(sub)
 
         return self
 
@@ -217,13 +218,13 @@ class StatementWrapper(object):
 #
 # generates a parent class that wraps all the list methods that returns
 # lists.
-_list_methods = [
+_LIST_METHODS = [
     '__add__', '__iadd__', '__reversed__',
     '__mul__', '__imul__', '__rmul__',
 ]
 
 if hasattr(list, '__getslice__'):
-    _list_methods.append('__getslice__')
+    _LIST_METHODS.append('__getslice__')
 
 
 # This new methods should return custom lists
@@ -241,7 +242,7 @@ def _wraper(method):
 
 _CustomList = type('_CustomList', (list,), {
     method: _wraper(getattr(list, method))
-    for method in _list_methods
+    for method in _LIST_METHODS
 })
 # ---
 
@@ -303,7 +304,7 @@ class ListWrapper(_CustomList):
     def find(self, *args, **kwargs):
         """Find all children of node in the list who match certain criteria.
 
-        Basically the ``find`` method is runned against each item in the
+        Basically the ``find`` method run against each item in the
         list, the results are collected in a new list, which is wrapped and
         returned. This allows multiple ``find``s o be chained, e.g.::
 
@@ -326,7 +327,7 @@ class ListWrapper(_CustomList):
     def walk(self, *args, **kwargs):
         """Recursivelly find nodes and/or apply a function to them.
 
-        Basically the ``walk`` method is runned against each item in the
+        Basically the ``walk`` method run against each item in the
         list, the results are collected in a new list, which is wrapped and
         returned.
 
