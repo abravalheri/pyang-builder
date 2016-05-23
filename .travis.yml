@@ -20,10 +20,11 @@ addons:
 install:
   - source tests/travis_install.sh
   # force pyang version with patches
-  - pip install -I git+https://github.com/abravalheri/pyang.git@deploy
-  - pip install -I git+https://github.com/abravalheri/pyangext.git@master
+  - pip install -U -I git+https://github.com/abravalheri/pyang.git@deploy
+  - pip install -U -I git+https://github.com/abravalheri/pyangext.git@master
   - pip install -r requirements.txt
   - pip install -r test-requirements.txt
+  - pip freeze
 script:
   - python setup.py test
 after_success:
