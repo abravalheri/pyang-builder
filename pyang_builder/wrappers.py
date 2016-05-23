@@ -198,12 +198,12 @@ class StatementWrapper(object):
         st.validate_module(ctx_, node)
 
         # look for errors and warnings
-        (errors, warnings) = check(ctx_, rescue)
+        errors, _ = check(ctx_, rescue)
 
         # restore old errors
         ctx_.errors = old_errors
 
-        return node.i_is_validated and not errors and not warnings
+        return node.i_is_validated and not errors
 
     def __repr__(self):
         """Unique representation for debugging purposes."""
