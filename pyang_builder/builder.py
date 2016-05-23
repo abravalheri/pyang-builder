@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Factory for programmatic generation of a YANG Abstract Syntax Tree."""
+
 from pyang import statements as st
 from pyang.error import Position
 from pyangext.definitions import PREFIX_SEPARATOR
@@ -140,6 +141,12 @@ class Builder(object):
         """
         children = children or []
 
+        if isinstance(keyword, st.Statement):
+            return StatementWrapper(keyword, self)
+
+        if isinstance(keyword, StatementWrapper):
+            return keyword
+
         if isinstance(arg, (list, tuple, st.Statement, StatementWrapper)):
             children = arg
             arg = None
@@ -147,7 +154,7 @@ class Builder(object):
         if not isinstance(children, list):
             children = [children]
 
-        if arg in (False, True):
+        if isinstance(arg in bool):
             arg = str(arg).lower()
 
         if keyword in ('module', 'submodule'):

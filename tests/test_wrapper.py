@@ -20,12 +20,10 @@ __license__ = "mozilla"
 @pytest.fixture
 def container(Y):
     """Sample container"""
-    return Y.from_tuple(
-        ('container', 'outer', [
-            ('leaf', 'id', [('type', 'int32')]),
-            ('leaf', 'name', [('type', 'string')]),
-        ])
-    )
+    return Y.container('outer', [
+        ('leaf', 'id', [('type', 'int32')]),
+        ('leaf', 'name', [('type', 'string')]),
+    ])
 
 
 def test_dump(Y):
@@ -129,42 +127,40 @@ def test_validate(Y):
         leaf.validate()
 
     ctx = create_context()
-    ref = Y.from_tuple(
-        ('module', 'test1', [
-            ('namespace', 'urn:yang:test'),
-            ('prefix', 'test'),
-            ('revision', '1988-07-03'),
-            ('grouping', 'grouping-root', [
-                ('leaf', 'leaf1', [
+    ref = Y.module('test1', [
+        ('namespace', 'urn:yang:test'),
+        ('prefix', 'test'),
+        ('revision', '1988-07-03'),
+        ('grouping', 'grouping-root', [
+            ('leaf', 'leaf1', [
+                ('type', 'string')
+            ]),
+            ('grouping', 'grouping1', [
+                ('leaf', 'grouping1-leaf', [
                     ('type', 'string')
                 ]),
-                ('grouping', 'grouping1', [
-                    ('leaf', 'grouping1-leaf', [
-                        ('type', 'string')
-                    ]),
-                ]),
-                ('typedef', 'type1', [('type', 'int')]),
-                ('grouping', 'grouping2', [
-                    ('leaf-list', 'grouping2-leaf-list', [
-                        ('type', 'type1')
-                    ]),
-                ]),
-                ('uses', 'grouping2'),
-                ('extension', 'extension1')
             ]),
-        ])
-    )
+            ('typedef', 'type1', [('type', 'int')]),
+            ('grouping', 'grouping2', [
+                ('leaf-list', 'grouping2-leaf-list', [
+                    ('type', 'type1')
+                ]),
+            ]),
+            ('uses', 'grouping2'),
+            ('extension', 'extension1')
+        ]),
+    ])
+
     ctx.add_module('test1', ref.dump())
 
-    module = Y.from_tuple(
-        ('module', 'test', [
-            ('namespace', 'urn:yang:test'),
-            ('prefix', 'test'),
-            ('import', 'test1', [('prefix', 'test1')]),
-            ('revision', '1988-07-03'),
-            ('uses', 'test1:grouping-root')
-        ])
-    )
+    module = Y.module('test', [
+        ('namespace', 'urn:yang:test'),
+        ('prefix', 'test'),
+        ('import', 'test1', [('prefix', 'test1')]),
+        ('revision', '1988-07-03'),
+        ('uses', 'test1:grouping-root')
+    ])
+
     assert module.validate(ctx)
     raw_module = module.unwrap()
     assert len(raw_module.i_children) == 2
