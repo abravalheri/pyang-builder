@@ -176,8 +176,7 @@ def test_validate(Y):
 
 def test_validate_with_warnings(Y):
     """
-    should not be valid if AST is not proper,
-    and should warn
+    should be valid even if AST is not exactly proper
     """
     module = Y.module('test', [
         Y.namespace('urn:yang:test'),
@@ -201,7 +200,7 @@ def test_validate_with_warnings(Y):
     ])
 
     with pytest.warns(SyntaxWarning):
-        assert module.validate() is False
+        assert module.validate()
 
 
 def test_find(container):
