@@ -2,11 +2,21 @@
 """Components responsible for providing a ``FlentInterface``-like DSL."""
 
 from pyang import statements as st
-from pyangext.utils import check, create_context, dump, select
+from pyangext.utils import check, create_context, dump, select, walk
 
 __author__ = "Anderson Bravalheri"
 __copyright__ = "Copyright (C) 2016 Anderson Bravalheri"
 __license__ = "mozilla"
+
+
+def is_statement(node):
+    """Check if node is instance of ``pyang.statements.Statement``"""
+    return isinstance(node, st.Statement)
+
+
+def is_wrapper(node):
+    """Check if node is instance of ``StatementWrapper``"""
+    return isinstance(node, StatementWrapper)
 
 
 class StatementWrapper(object):
@@ -107,6 +117,28 @@ class StatementWrapper(object):
             for child in children
         )
 
+    def walk(self, *args, **kwargs):
+        """Recursivelly find nodes and/or apply a function to them.
+
+        Arguments:
+            select: optional callable that receives a node and returns a bool
+                (True if the node matches the criteria)
+            apply: optinal callable that are going to be applied to the node
+                if it matches the criteria
+            key (str): property where the children nodes are stored,
+                default is ``substmts``
+
+        Returns:
+            list: results collected from the apply function
+        """
+        children = walk(self._statement, *args, **kwargs)
+        builder = self._builder
+        factory = self.__class__
+        return ListWrapper(
+            is_statement(child) and factory(child, builder) or child
+            for child in children
+        )
+
     def unwrap(self):
         """Retrieve the inner ``pyang.statements.Statement`` object"""
         return self._statement
@@ -130,10 +162,7 @@ class StatementWrapper(object):
         copy = kwargs.get('copy')
 
         for child in children:
-            sub = (
-                child._statement if isinstance(child, StatementWrapper)
-                else child
-            )
+            sub = child.unwrap() if is_wrapper(child) else child
             if copy:
                 sub = sub.copy(statement)
             else:
@@ -142,13 +171,17 @@ class StatementWrapper(object):
 
         return self
 
-    def validate(self, ctx=None):
+    def validate(self, ctx=None, rescue=False):
         """Validates the syntax tree.
 
         Should be called just from ``module``, ``submodule`` statements.
 
         Arguments:
             ctx (pyang.Context): object generated from pyang parsing
+
+        Keyword Arguments:
+            rescue (bool): do not raise Exception
+                if validation finishes with errors
         """
         node = self._statement
         if node.keyword not in ('module', 'submodule'):
@@ -165,12 +198,12 @@ class StatementWrapper(object):
         st.validate_module(ctx_, node)
 
         # look for errors and warnings
-        check(ctx_)
+        (errors, warnings) = check(ctx_, rescue)
 
         # restore old errors
         ctx_.errors = old_errors
 
-        return node.i_is_validated
+        return node.i_is_validated and not errors and not warnings
 
     def __repr__(self):
         """Unique representation for debugging purposes."""
@@ -289,6 +322,18 @@ class ListWrapper(_CustomList):
         """
         kwargs['extend'] = True
         return self.invoke('find', *args, **kwargs)
+
+    def walk(self, *args, **kwargs):
+        """Recursivelly find nodes and/or apply a function to them.
+
+        Basically the ``walk`` method is runned against each item in the
+        list, the results are collected in a new list, which is wrapped and
+        returned.
+
+        See :meth:`StatementWrapper.walk`.
+        """
+        kwargs['extend'] = True
+        return self.invoke('walk', *args, **kwargs)
 
     def __repr__(self):
         return '<{}.{} at {}: {}>'.format(

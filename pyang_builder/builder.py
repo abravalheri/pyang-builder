@@ -5,7 +5,7 @@ from pyang import statements as st
 from pyang.error import Position
 from pyangext.definitions import PREFIX_SEPARATOR
 
-from .wrappers import StatementWrapper
+from .wrappers import StatementWrapper, is_statement, is_wrapper
 
 __author__ = "Anderson Bravalheri"
 __copyright__ = "Copyright (C) 2016 Anderson Bravalheri"
@@ -141,10 +141,10 @@ class Builder(object):
         """
         children = children or []
 
-        if isinstance(keyword, st.Statement):
+        if is_statement(keyword):
             return StatementWrapper(keyword, self)
 
-        if isinstance(keyword, StatementWrapper):
+        if is_wrapper(keyword):
             return keyword
 
         if isinstance(arg, (list, tuple, st.Statement, StatementWrapper)):
@@ -154,8 +154,12 @@ class Builder(object):
         if not isinstance(children, list):
             children = [children]
 
-        if isinstance(arg in bool):
+        if isinstance(arg, bool):
             arg = str(arg).lower()
+
+        # ensure arg will be string
+        if arg is not None:
+            arg = str(arg)
 
         if keyword in ('module', 'submodule'):
             node = self._top
@@ -163,11 +167,7 @@ class Builder(object):
             node.arg = arg
             node.i_module = node
         else:
-            parent_node = (
-                parent.unwrap()
-                if isinstance(parent, StatementWrapper)
-                else parent
-            )
+            parent_node = parent.unwrap() if is_wrapper(parent) else parent
 
             node = st.Statement(
                 self._top, parent_node, self._top.pos, keyword, arg)
@@ -175,7 +175,7 @@ class Builder(object):
 
         unwraped_children = []
         for child in children:
-            if isinstance(child, StatementWrapper):
+            if is_wrapper(child):
                 unwraped = child.unwrap()
             elif isinstance(child, tuple):
                 unwraped = self.from_tuple(child).unwrap()
@@ -260,10 +260,10 @@ class Builder(object):
 
         See :meth:`Builder.__call__`.
         """
-        if isinstance(texp, st.Statement):
+        if is_statement(texp):
             return StatementWrapper(texp, self)
 
-        if isinstance(texp, StatementWrapper):
+        if is_wrapper(texp):
             return texp
 
         if not isinstance(texp, tuple):

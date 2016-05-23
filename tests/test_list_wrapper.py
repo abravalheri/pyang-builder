@@ -63,3 +63,14 @@ def test_find_supports_chain(container):
     assert len(types) == 2
     assert all(isinstance(node, StatementWrapper) for node in types+leafs)
     assert list(types.pick('arg')) == ['int32', 'string']
+
+
+def test_walk_recursive(container):
+    """
+    find should search recursively, deep
+    """
+    nodes = container.walk(lambda node: node.keyword == 'type')
+    assert isinstance(nodes, ListWrapper)
+    assert len(nodes) == 2
+    assert all(isinstance(node, StatementWrapper) for node in nodes)
+    assert list(nodes.pick('arg')) == ['int32', 'string']
