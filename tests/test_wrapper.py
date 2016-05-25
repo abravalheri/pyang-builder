@@ -7,7 +7,6 @@ tests for Statement Wrapper
 import pytest
 
 from pyang.statements import Statement
-
 from pyangext.utils import create_context
 
 from pyang_builder import StatementWrapper
@@ -32,8 +31,8 @@ def test_dump(Y):
     wrapper should dump itself
     """
     module = Y.module('test', [
-        Y.prefix('test'),
-        Y.namespace('urn:yang:test')
+        Y.namespace('urn:yang:test'),
+        Y.prefix('test')
     ])
 
     assert module.dump().strip() == (
@@ -49,8 +48,8 @@ def test_attribute(Y):
     wrapper should allow direct attribute
     """
     module = Y.module('test')
-    module.prefix('test')
     module.namespace('urn:yang:test')
+    module.prefix('test')
 
     assert module.dump().strip() == (
         'module test {\n'
@@ -67,8 +66,8 @@ def test_call(Y):
     wrapper should allow direct call
     """
     module = Y('module', 'test')
-    module('prefix', 'test')
     module('namespace', 'urn:yang:test')
+    module('prefix', 'test')
 
     assert module.dump().strip() == (
         'module test {\n'
