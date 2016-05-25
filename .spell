@@ -1,3 +1,5 @@
+accessor
+anyxml
 API
 arg
 args
@@ -10,6 +12,8 @@ cli
 config
 conftest
 ctx
+dasherize
+dasherizes
 dict
 dicts
 dir
@@ -27,6 +31,7 @@ kwargs
 meth
 namespace
 noqa
+ok
 org
 plugin
 plugins
@@ -36,8 +41,11 @@ pyang
 pyangext
 pytest
 pythonhosted
+RPC
+RPCs
 seealso
 setuptools
+singularize
 stateful
 stateless
 stderr
@@ -45,8 +53,12 @@ stdout
 str
 substmts
 todo
+unicode
+unprefixed
+URL
 urn
 username
+usernames
 usr
 utf
 utils

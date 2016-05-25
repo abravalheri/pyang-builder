@@ -234,7 +234,7 @@ notes=FIXME,XXX,TODO
 spelling-dict=en_US
 
 # List of comma separated words that should not be checked.
-spelling-ignore-words=API,DSL
+spelling-ignore-words=API,DSL,RPC,URL,RFC
 
 # A path to a file that contains private dictionary; one word per line.
 spelling-private-dict-file=.spell

@@ -17,11 +17,11 @@ This is a design decision in order to provide a beautiful DSL-like API.
 import pkg_resources
 
 from .builder import Builder
-from .wrappers import StatementWrapper
+from .wrappers import ListWrapper, StatementWrapper
 
 try:
     __version__ = pkg_resources.get_distribution(__name__).version
 except:  # pylint: disable=bare-except
     __version__ = 'unknown'
 
-__all__ = ['Builder', 'StatementWrapper']
+__all__ = ['Builder', 'ListWrapper', 'StatementWrapper']

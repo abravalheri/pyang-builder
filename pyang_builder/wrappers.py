@@ -100,6 +100,15 @@ class StatementWrapper(object):
         """
         return dump(self._statement, *args, **kwargs)
 
+    def copy(self, *args, **kwargs):
+        """Copy the node.
+
+        Arguments:
+            parent: new parent node
+        """
+        return self.__class__(
+            self._statement.copy(*args, **kwargs), self.builder)
+
     def find(self, *args, **kwargs):
         """find all children of the current node who match certain criteria.
 
